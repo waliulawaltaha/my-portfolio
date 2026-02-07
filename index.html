@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    
+    <title>Waliul Awal Taha - Creative Developer</title>
+    <meta name="description" content="Creative Developer building expressive digital experiences. React, Node.js, and Design.">
+    <meta name="author" content="Waliul Awal Taha">
+    <meta name="theme-color" content="#0a0a0a">
+    
+    <link rel="icon" href="#" type="image/webp">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        neutral: { 850: '#1f1f1f', 900: '#171717', 950: '#0a0a0a' }
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'marquee': 'marquee 35s linear infinite',
+                        'blob': 'blob 7s infinite',
+                        'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-20px)' } },
+                        marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+                        blob: {
+                            "0%": { transform: "translate(0px, 0px) scale(1)" },
+                            "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+                            "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+                            "100%": { transform: "translate(0px, 0px) scale(1)" }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            cursor: none;
+            touch-action: manipulation; /* IMPROVED: Better mobile touch handling */
+        }
+        
+        ::selection { background: #ffffff; color: #000000; }
+
+        @media (hover: none) and (pointer: coarse) {
+            body { cursor: auto !important; }
+            .custom-cursor { display: none !important; }
+            /* IMPROVED: Ensure links are clickable on mobile */
+            a, button, [role="button"] { cursor: pointer !important; }
+        }
+
+        .will-change-transform { will-change: transform; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Improved Mesh Background */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: -10;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%), 
+                radial-gradient(circle at 85% 30%, rgba(30, 64, 175, 0.08), transparent 25%);
+            filter: contrast(120%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, useMemo, memo } = React;
+
+        // --- Icons ---
+        const Icon = ({ path, size = 24, className = "", fill="none" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={fill === "none" ? "currentColor" : "none"} strokeWidth={fill === "none" ? "2" : "0"} strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>
+        );
+
+        const Icons = {
+            ArrowUpRight: (props) => <Icon {...props} path={<g><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></g>} />,
+            Layers: (props) => <Icon {...props} path={<g><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></g>} />,
+            Code2: (props) => <Icon {...props} path={<g><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></g>} />,
+            Github: (props) => <Icon {...props} path={<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />} />,
+            ArrowUp: (props) => <Icon {...props} path={<polyline points="18 15 12 9 6 15" />} />,
+            Check: (props) => <Icon {...props} path={<polyline points="20 6 9 17 4 12" />} />,
+            X: (props) => <Icon {...props} path={<g><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></g>} />, 
+            Layout: (props) => <Icon {...props} path={<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />} />,
+            Zap: (props) => <Icon {...props} path={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />} />,
+            Send: (props) => <Icon {...props} path={<g><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></g>} />,
+            RefreshCcw: (props) => <Icon {...props} path={<g><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></g>} />,
+            Calendar: (props) => <Icon {...props} path={<g><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></g>} />,
+            ChevronRight: (props) => <Icon {...props} path={<polyline points="9 18 15 12 9 6" />} />,
+            Facebook: (props) => <Icon {...props} path={<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />} />,
+            Instagram: (props) => <Icon {...props} path={<g><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></g>} />,
+            Linkedin: (props) => <Icon {...props} path={<g><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></g>} />,
+            XLogo: (props) => <Icon {...props} fill="currentColor" path={<path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />} />,
+            Globe: (props) => <Icon {...props} path={<g><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></g>} />
+        };
+
+        // --- Data ---
+        const personalInfo = {
+            name: "Waliul Awal Taha",
+            role: "Creative Developer",
+            socials: {
+                github: "https://github.com/waliulawaltaha",
+                facebook: "https://www.facebook.com/waliulawaltaha",
+                instagram: "https://www.instagram.com/waliulawaltaha/",
+                linkedin: "https://www.linkedin.com/in/waliulawaltaha",
+                twitter: "https://x.com/waliulawaltaha"
+            }
+        };
+
+        const servicesData = [
+            { title: "Web Development", description: "Building fast, responsive, and scalable websites using modern technologies like React and Tailwind CSS.", iconKey: "code" },
+            { title: "WordPress", description: "Custom theme development, plugin integration, and performance optimization for your CMS needs.", iconKey: "layers" },
+            { title: "UI/UX Design", description: "Creating intuitive and aesthetically pleasing user interfaces that drive engagement and conversion.", iconKey: "layout" },
+            { title: "Speed Optimization", description: "Enhancing website performance to ensure lightning-fast load times and better SEO rankings.", iconKey: "zap" }
+        ];
+
+        const allPlaygroundItems = [
+            { title: "Neon Cursor", type: "JS Experiment", category: "Experiments", color: "bg-purple-500" },
+            { title: "3D Card Tilt", type: "Interaction", category: "UI Components", color: "bg-blue-500" },
+            { title: "Logo Concepts", type: "Branding", category: "UI/UX", color: "bg-emerald-500" },
+            { title: "Scroll Physics", type: "Motion", category: "Motion", color: "bg-orange-500" },
+            { title: "Glassmorphism", type: "CSS Design", category: "UI/UX", color: "bg-pink-500" },
+            { title: "State Machine", type: "Logic", category: "Experiments", color: "bg-indigo-500" },
+            { title: "Dark Toggle", type: "Component", category: "UI Components", color: "bg-zinc-500" },
+            { title: "Parallax Hero", type: "Motion", category: "Motion", color: "bg-cyan-500" }
+        ];
+
+        // --- Visual Components ---
+
+        const CustomCursor = () => {
+            const cursorRef = useRef(null);
+            const cursorDotRef = useRef(null);
+            useEffect(() => {
+                if (typeof window === 'undefined' || window.matchMedia("(pointer: coarse)").matches) return;
+                const moveCursor = (e) => {
+                    requestAnimationFrame(() => {
+                        if (cursorRef.current) cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+                        if (cursorDotRef.current) cursorDotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+                    });
+                };
+                window.addEventListener('mousemove', moveCursor, { passive: true });
+                return () => window.removeEventListener('mousemove', moveCursor);
+            }, []);
+            return (
+                <React.Fragment>
+                    <div ref={cursorRef} className="custom-cursor fixed top-0 left-0 w-8 h-8 border border-white/40 rounded-full pointer-events-none z-[100] -ml-4 -mt-4 transition-all duration-200 ease-out mix-blend-difference will-change-transform hidden md:block"></div>
+                    <div ref={cursorDotRef} className="custom-cursor fixed top-0 left-0 w-1 h-1 bg-white rounded-full pointer-events-none z-[100] -ml-0.5 -mt-0.5 mix-blend-difference will-change-transform hidden md:block"></div>
+                </React.Fragment>
+            );
+        };
+
+        const Magnetic = ({ children }) => {
+            const ref = useRef(null);
+            const [position, setPosition] = useState({x:0, y:0});
+            const handleMouse = (e) => {
+                if (!ref.current) return;
+                const { clientX, clientY } = e;
+                const { height, width, left, top } = ref.current.getBoundingClientRect();
+                const x = clientX - (left + width/2);
+                const y = clientY - (top + height/2);
+                setPosition({ x: x * 0.15, y: y * 0.15 });
+            }
+            const reset = () => setPosition({x:0, y:0});
+            return (
+                <div ref={ref} onMouseMove={handleMouse} onMouseLeave={reset} style={{transform: `translate(${position.x}px, ${position.y}px)`, transition: 'transform 0.1s ease-out', display: 'inline-block'}}>
+                    {children}
+                </div>
+            )
+        };
+
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => { const timer = setTimeout(onClose, 3000); return () => clearTimeout(timer); }, [onClose]);
+            return (
+                <div className={`animate-in slide-in-from-bottom-5 fade-in duration-300 min-w-[300px] p-4 rounded-lg border shadow-2xl flex items-center gap-3 ${type === 'success' ? 'bg-neutral-900 border-green-900' : 'bg-neutral-900 border-neutral-800'}`}>
+                    <div className={`p-1 rounded-full ${type === 'success' ? 'bg-green-500/10' : 'bg-white/10'}`}>
+                        {type === 'success' ? <Icons.Check size={16} className="text-green-500" /> : <Icons.Zap size={16} className="text-white" />}
+                    </div>
+                    <p className={`text-sm font-medium ${type === 'success' ? 'text-green-400' : 'text-white'}`}>{message}</p>
+                </div>
+            );
+        };
+
+        const Spotlight = () => {
+            const ref = useRef(null);
+            useEffect(() => {
+                const handleMouseMove = (e) => { 
+                    if (ref.current) {
+                        requestAnimationFrame(() => {
+                            ref.current.style.background = `radial-gradient(800px at ${e.clientX}px ${e.clientY}px, rgba(29, 78, 216, 0.05), transparent 80%)`;
+                        });
+                    }
+                };
+                window.addEventListener('mousemove', handleMouseMove, { passive: true });
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
+            return <div ref={ref} className="fixed inset-0 z-0 pointer-events-none transition-opacity duration-300" />;
+        };
+
+        const BackgroundBlobs = memo(() => (
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+                <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-900/10 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
+                <div className="absolute top-0 -right-4 w-96 h-96 bg-blue-900/10 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+                <div className="absolute -bottom-8 left-20 w-96 h-96 bg-indigo-900/10 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+            </div>
+        ));
+
+        const Reveal = ({ children, delay = 0, className = "" }) => {
+            const [isVisible, setIsVisible] = useState(false);
+            const ref = useRef(null);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } }, { threshold: 0.1 });
+                if (ref.current) observer.observe(ref.current);
+                return () => observer.disconnect();
+            }, []);
+            return (
+                <div ref={ref} className={`${className} transform transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`} style={{ transitionDelay: `${delay}ms` }}>
+                    {children}
+                </div>
+            );
+        };
+
+        const Breadcrumbs = ({ items }) => (
+            <nav className="flex items-center flex-wrap gap-2 text-sm font-mono text-neutral-400 mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
+                {items.map((item, index) => (
+                    <React.Fragment key={index}>
+                        {index > 0 && <Icons.ChevronRight size={14} className="text-neutral-500" />}
+                        {item.onClick ? (
+                            <button onClick={item.onClick} className="hover:text-white transition-colors cursor-pointer hover:underline underline-offset-4 decoration-neutral-500">
+                                {item.label}
+                            </button>
+                        ) : (
+                            <span className="text-neutral-200 cursor-default">{item.label}</span>
+                        )}
+                    </React.Fragment>
+                ))}
+            </nav>
+        );
+
+        const Footer = memo(() => (
+            <footer className="py-8 text-center text-neutral-500 text-sm border-t border-neutral-900 mt-auto">
+                <p>&copy; {new Date().getFullYear()} {personalInfo.name}. All rights reserved.</p>
+            </footer>
+        ));
+
+        const CircularScrollButton = ({ show, onClick }) => {
+            if (!show) return null;
+            return (
+                <button onClick={onClick} aria-label="Back to Top" className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-neutral-800/80 backdrop-blur-md border border-neutral-700 text-white hover:bg-neutral-700 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 shadow-xl group">
+                    <div className="group-hover:-translate-y-1 transition-transform"><Icons.ArrowUp size={20} /></div>
+                </button>
+            );
+        };
+
+        // --- NEW COMPONENT: Location & Time ---
+        const LocationTime = () => {
+            const [time, setTime] = useState("");
+            
+            useEffect(() => {
+                const updateTime = () => {
+                    const now = new Date();
+                    // Explicitly set to Bangladesh Time (Asia/Dhaka) which is UTC+6
+                    const options = { 
+                        timeZone: 'Asia/Dhaka', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: true 
+                    };
+                    const timeString = now.toLocaleTimeString('en-US', options);
+                    setTime(timeString);
+                };
+                updateTime();
+                const interval = setInterval(updateTime, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-xs font-mono text-neutral-400 select-none hover:bg-white/10 transition-colors cursor-default">
+                    <div className="animate-spin-slow" style={{ animationDuration: '10s' }}>
+                        <Icons.Globe size={14} className="text-neutral-500" />
+                    </div>
+                    <span>Bangladesh <span className="text-white font-semibold ml-1">{time}</span></span>
+                </div>
+            );
+        };
+
+        // --- Navigation ---
+        const Navigation = memo(({ currentView, isMenuOpen, setIsMenuOpen, onNavigate }) => {
+            const [activeSection, setActiveSection] = useState("");
+            const [scrolled, setScrolled] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setScrolled(window.scrollY > 20);
+                    if (currentView === 'home') {
+                        const sections = ['work', 'services', 'playground', 'contact'];
+                        let current = "";
+                        for (const section of sections) {
+                            const element = document.getElementById(section);
+                            if (element && window.scrollY >= (element.offsetTop - 300)) {
+                                current = section;
+                            }
+                        }
+                        setActiveSection(current ? `#${current}` : "");
+                    }
+                };
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, [currentView]);
+
+            const menuItems = [
+                { label: 'Experience', href: '#work' },
+                { label: 'Services', href: '#services' },
+                { label: 'Playground', href: 'playground', isPage: true },
+                { label: 'Contact', href: '#contact' }
+            ];
+
+            return (
+                <React.Fragment>
+                    <nav className={`fixed w-full z-50 top-0 left-0 transition-all duration-500 ${scrolled ? 'py-4 bg-neutral-950/70 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20' : 'py-6 bg-transparent'}`}>
+                        <div className="px-6 md:px-12 max-w-7xl mx-auto flex justify-between items-center">
+                            
+                            {/* Logo: Restored Green Dot Status */}
+                            <a href="#" onClick={(e) => onNavigate(e, '#')} className="flex items-center gap-4 group z-50 relative" aria-label="Home">
+                                <div className="relative w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                                    <img src="https://www.waliulawaltaha.com/assets/logo/portfolio-logo.svg" alt="logo" className="w-full h-full object-contain" />
+                                    {/* Green Status Dot Restored */}
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white"></span>
+                                    </span>
+                                </div>
+                                <span className={`font-mono text-sm tracking-widest uppercase transition-opacity duration-300 hidden sm:block ${scrolled ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 text-neutral-400'}`}>Creative Dev</span>
+                            </a>
+                            
+                            {/* Desktop Links */}
+                            <div className="hidden md:flex items-center gap-1 bg-neutral-900/80 p-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-2xl">
+                                {menuItems.map((item) => {
+                                    const isActive = currentView === 'playground' ? item.isPage : activeSection === item.href;
+                                    return (
+                                        <Magnetic key={item.label}>
+                                            <a href={item.href} onClick={(e) => onNavigate(e, item.href)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 relative inline-block ${isActive ? 'bg-white text-black shadow-lg' : 'text-neutral-300 hover:text-white hover:bg-white/5'}`}>{item.label}</a>
+                                        </Magnetic>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Mobile Toggle */}
+                            <div className="md:hidden z-50 relative">
+                                <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle Menu" className="text-white p-2 relative group focus:outline-none">
+                                    <div className={`w-6 h-0.5 bg-white mb-1.5 transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></div>
+                                    <div className={`w-6 h-0.5 bg-white mb-1.5 transition-all duration-300 ${isMenuOpen ? 'opacity-0 translate-x-4' : ''}`}></div>
+                                    <div className={`w-6 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></div>
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {isMenuOpen && (
+                        <div className="fixed inset-0 z-40 bg-neutral-950/95 backdrop-blur-2xl flex flex-col animate-in fade-in duration-300">
+                            <div className="flex-1 flex flex-col justify-center items-center gap-6 p-6">
+                                {menuItems.map((item, idx) => (
+                                    <a key={item.label} href={item.href} onClick={(e) => onNavigate(e, item.href)} className="text-5xl font-bold tracking-tighter text-white hover:text-neutral-400 transition-colors animate-slide-up opacity-0" style={{ animationDelay: `${idx * 100}ms` }}>{item.label}</a>
+                                ))}
+                            </div>
+                            <div className="p-8 border-t border-white/10 flex justify-center gap-8 animate-in slide-in-from-bottom-10 fade-in duration-500 delay-300">
+                                {Object.values(personalInfo.socials).map((url, i) => {
+                                     const IconComp = [Icons.Github, Icons.Facebook, Icons.Instagram, Icons.Linkedin, Icons.XLogo][i];
+                                     return (<a key={i} href={url} aria-label="Social Link" target="_blank" className="text-neutral-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"><IconComp size={24} /></a>);
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </React.Fragment>
+            );
+        });
+
+        // --- Immersive Loading Component ---
+        const Preloader = ({ isLoading, onAnimationDone }) => {
+            const [progress, setProgress] = useState(0);
+            const [isExiting, setIsExiting] = useState(false);
+            const [message, setMessage] = useState("Initializing...");
+
+            useEffect(() => {
+                // Simulate real boot-up sequence
+                let currentProgress = 0;
+                const interval = setInterval(() => {
+                    // Random increment for organic feel
+                    const increment = Math.random() * 2 + 1; 
+                    currentProgress += increment;
+                    
+                    if (currentProgress > 100) currentProgress = 100;
+                    
+                    setProgress(Math.floor(currentProgress));
+
+                    // Update Text Status
+                    if (currentProgress < 30) setMessage("Loading Assets...");
+                    else if (currentProgress < 55) setMessage("Compiling Code...");
+                    else if (currentProgress < 80) setMessage("Optimizing Experience...");
+                    else if (currentProgress < 100) setMessage("Almost Ready...");
+                    else setMessage("Welcome.");
+
+                    if (currentProgress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            setIsExiting(true);
+                            setTimeout(onAnimationDone, 800); 
+                        }, 500);
+                    }
+                }, 40); 
+                return () => clearInterval(interval);
+            }, [onAnimationDone]);
+
+            if (!isLoading && !isExiting) return null; 
+
+            return (
+                <div className={`fixed inset-0 z-[200] bg-neutral-950 flex flex-col items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${isExiting ? '-translate-y-full' : 'translate-y-0'}`}>
+                    <div className="relative text-center w-full max-w-md px-6">
+                        <div className="text-7xl md:text-9xl font-bold text-white mb-2 font-mono tracking-tighter transition-opacity duration-300 flex justify-center">
+                            {progress}<span className="text-3xl mt-4">%</span>
+                        </div>
+                        
+                        {/* Dynamic Status Text */}
+                        <div className="h-8 flex items-center justify-center mb-6">
+                            <p className="text-neutral-400 font-mono text-sm uppercase tracking-[0.2em] animate-pulse">
+                                {message}
+                            </p>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-[2px] bg-neutral-900 rounded-full overflow-hidden relative">
+                            <div className="absolute top-0 left-0 h-full bg-white transition-all duration-100 ease-out" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        
+                        {/* Fake System Stats */}
+                        <div className="flex justify-between mt-2 text-[10px] font-mono text-neutral-600">
+                            <span>MEM: 64KB</span>
+                            <span>{new Date().getFullYear()}</span>
+                            <span>SECURE</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const HomePage = ({ onProjectClick, addToast }) => (
+            <React.Fragment>
+                <section className="min-h-screen flex items-center px-6 md:px-12 max-w-7xl mx-auto pt-20">
+                    <div>
+                        <Reveal>
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    <span className="text-neutral-400 text-sm font-mono uppercase tracking-widest">Available for hire</span>
+                                </div>
+                                <div className="hidden md:block w-px h-4 bg-neutral-800"></div>
+                                <LocationTime />
+                            </div>
+                        </Reveal>
+                        <Reveal delay={100}>
+                            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-none mb-6">CREATIVE<br /><span className="text-neutral-700">DEVELOPER.</span></h1>
+                        </Reveal>
+                        <Reveal delay={200}>
+                            <p className="max-w-xl text-lg md:text-xl text-neutral-300 leading-relaxed mb-10">Hi, I'm <span className="text-white font-medium">{personalInfo.name}</span>. I craft high-performance digital experiences with a focus on motion, design, and scalability.</p>
+                        </Reveal>
+                        <Reveal delay={300}>
+                            <div className="flex gap-4">
+                                <Magnetic><a href="#work" className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-neutral-200 transition-colors flex items-center gap-2 inline-block shadow-xl">View Work <Icons.ArrowUpRight size={18} /></a></Magnetic>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-neutral-800 to-transparent"></div>
+
+                {/* --- MODERN EXPERIENCE SECTION START --- */}
+                <section id="work" className="py-32 px-6 md:px-12 max-w-7xl mx-auto relative">
+                    {/* Background decorative element */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+                    <Reveal className="mb-16">
+                        <div className="flex items-end justify-between">
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Experience</h2>
+                            <div className="hidden md:block h-px flex-1 bg-gradient-to-r from-neutral-800 to-transparent ml-8 mb-2"></div>
+                        </div>
+                    </Reveal>
+
+                    <Reveal delay={100}>
+                        <div className="relative group">
+                            {/* Gradient Border Effect */}
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 rounded-2xl opacity-30 group-hover:opacity-70 blur transition duration-500"></div>
+                            
+                            {/* Card Content */}
+                            <div className="relative bg-neutral-950 p-8 md:p-12 rounded-2xl border border-white/10 shadow-2xl">
+                                {/* Decorative Icon */}
+                                <div className="absolute top-8 right-8 text-neutral-800 pointer-events-none">
+                                    <Icons.Code2 size={100} strokeWidth={1} /> 
+                                </div>
+
+                                <div className="relative z-10 flex gap-6">
+                                    {/* Sidebar Accent */}
+                                    <div className="hidden md:block w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full h-full min-h-[100px]"></div>
+                                    
+                                    <div>
+                                        <p className="text-lg md:text-xl text-neutral-300 leading-relaxed font-light">
+                                            <span className="text-white font-medium">Contributed to the development</span> of multiple web applications across various domains, including <span className="text-indigo-400">e-commerce</span>, <span className="text-indigo-400">AI-based SaaS platforms</span>, PHP websites, WordPress projects, and educational systems. Involved in building <span className="text-white">user interfaces</span>, backend logic, dashboards, and internal tools. Projects are documented with screenshots and technical explanations, reflecting a structured and professional development approach.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Reveal>
+                </section>
+                {/* --- MODERN EXPERIENCE SECTION END --- */}
+
+                <section id="services" className="py-32 bg-neutral-900/20 px-6 md:px-12">
+                    <div className="max-w-7xl mx-auto">
+                        <Reveal className="mb-20"><h2 className="text-4xl md:text-5xl font-bold tracking-tight">Services</h2></Reveal>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {servicesData.map((s, i) => (
+                                <Reveal key={i} delay={i * 100} className="h-full">
+                                    <div className="h-full bg-neutral-950 border border-white/10 p-8 rounded-2xl hover:border-white/20 transition-all duration-300 group hover:-translate-y-2">
+                                        <div className="w-12 h-12 bg-neutral-900 rounded-lg flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform duration-300 border border-neutral-800">
+                                            {s.iconKey === 'code' && <Icons.Code2 />}
+                                            {s.iconKey === 'layers' && <Icons.Layers />}
+                                            {s.iconKey === 'layout' && <Icons.Layout />}
+                                            {s.iconKey === 'zap' && <Icons.Zap />}
+                                        </div>
+                                        <h3 className="text-xl font-bold mb-3">{s.title}</h3>
+                                        <p className="text-neutral-400 text-sm leading-relaxed">{s.description}</p>
+                                    </div>
+                                </Reveal>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="playground" className="py-32 px-6 md:px-12 max-w-7xl mx-auto">
+                    <div className="flex justify-between items-end mb-20">
+                         <Reveal><h2 className="text-4xl md:text-5xl font-bold tracking-tight">Playground</h2></Reveal>
+                         <Reveal delay={100}>
+                            <a href="#playground" onClick={(e) => { e.preventDefault(); onProjectClick(null, 'page'); }} className="text-neutral-300 hover:text-white border-b border-neutral-700 hover:border-white transition-colors pb-1">View All</a>
+                        </Reveal>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {allPlaygroundItems.slice(0, 4).map((item, i) => (
+                            <Reveal key={i} delay={i * 50}>
+                                <div onClick={() => onProjectClick(item, 'playground')} className="group relative aspect-square bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-white/30 transition-all cursor-pointer">
+                                    <div className={`absolute inset-0 ${item.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                                    <div className="absolute inset-0 flex flex-col justify-between p-6">
+                                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300"><div className="bg-white text-black p-2 rounded-full"><Icons.ArrowUpRight size={16}/></div></div>
+                                        <div><h4 className="font-bold text-lg">{item.title}</h4><p className="text-xs text-neutral-400 uppercase tracking-wider mt-1">{item.type}</p></div>
+                                    </div>
+                                </div>
+                            </Reveal>
+                        ))}
+                    </div>
+                </section>
+
+                <div className="py-20 border-y border-neutral-800 bg-neutral-900/50 overflow-hidden relative">
+                    <div className="flex animate-marquee whitespace-nowrap">
+                        {[...Array(2)].map((_, i) => (
+                            <div key={i} className="flex gap-16 mx-8">
+                                {['React', 'Next.js', 'TypeScript', 'Node.js', 'Tailwind', 'Figma', 'WebGL', 'Three.js'].map((tech) => (
+                                    <span key={tech} className="text-6xl md:text-8xl font-bold text-neutral-800 uppercase hover:text-white transition-colors cursor-default">{tech}</span>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <section id="contact" className="py-32 px-6 md:px-12 max-w-7xl mx-auto">
+                    <div className="grid lg:grid-cols-2 gap-16">
+                        <div>
+                            <Reveal><h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">Let's work together.</h2></Reveal>
+                            <Reveal delay={100}><p className="text-xl text-neutral-300 mb-12 max-w-md">Currently available for freelance projects and open to full-time opportunities.</p></Reveal>
+                            <Reveal delay={200}>
+                                <div className="flex gap-6">
+                                    {Object.values(personalInfo.socials).map((url, i) => {
+                                            const IconComp = [Icons.Github, Icons.Facebook, Icons.Instagram, Icons.Linkedin, Icons.XLogo][i];
+                                            return <a key={i} href={url} target="_blank" className="text-neutral-400 hover:text-white transition-colors"><IconComp size={24} /></a>
+                                    })}
+                                </div>
+                            </Reveal>
+                        </div>
+                        <Reveal delay={300} className="w-full">
+                            <ContactForm addToast={addToast} />
+                        </Reveal>
+                    </div>
+                </section>
+                
+                <Footer />
+            </React.Fragment>
+        );
+
+        const ProjectDetailPage = ({ project, onBack, onHome }) => {
+            useEffect(() => { window.scrollTo(0, 0); }, []);
+            
+            const breadcrumbItems = [
+                { label: 'Home', onClick: onHome },
+                { 
+                    label: project.category === 'Work Experience' ? 'Experience' : 'Playground', 
+                    onClick: project.category === 'Work Experience' ? () => onHome('#work') : onBack 
+                },
+                { label: project.title } 
+            ];
+
+            return (
+                <div className="min-h-screen pt-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col animate-in slide-in-from-bottom-10 fade-in duration-500">
+                    <Breadcrumbs items={breadcrumbItems} />
+                    <div className="mb-12">
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4">{project.title}</h1>
+                        <p className="text-2xl text-neutral-400">{project.subtitle}</p>
+                    </div>
+                    <div className={`w-full h-80 md:h-[500px] ${project.color || 'bg-neutral-900'} rounded-2xl mb-12 relative overflow-hidden group border border-neutral-800 shadow-2xl`}>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-30"><Icons.Code2 size={120} /></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-12 mb-20">
+                        <div className="md:col-span-2">
+                            <h3 className="text-xl font-bold mb-4">Overview</h3>
+                            <p className="text-neutral-300 leading-relaxed text-lg mb-8">{project.description}</p>
+                            <p className="text-neutral-300 leading-relaxed text-lg">{project.details || "This section contains detailed information about the project lifecycle, from initial concept to final deployment. It highlights the challenges faced during development and the innovative solutions implemented to solve them."}</p>
+                        </div>
+                        <div>
+                            <div className="bg-neutral-900/50 border border-neutral-800 p-6 rounded-xl">
+                                <h4 className="text-sm font-mono text-neutral-500 uppercase mb-4">Technologies</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {(project.tech || ["React", "Tailwind", "Node.js"]).map((t, i) => (
+                                        <span key={`${t}-${i}`} className="px-3 py-1 bg-neutral-900 border border-neutral-800 rounded text-sm text-neutral-300 cursor-default hover:border-neutral-600 transition-colors">{t}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const PlaygroundPage = ({ onBack, onItemClick }) => {
+            const [filter, setFilter] = useState("All");
+            useEffect(() => { window.scrollTo(0, 0); }, []);
+            const filteredItems = filter === "All" ? allPlaygroundItems : allPlaygroundItems.filter(item => item.category === filter);
+            const breadcrumbItems = [{ label: 'Home', onClick: onBack }, { label: 'Playground' }];
+
+            return (
+                <div className="min-h-screen pt-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col animate-in fade-in duration-500">
+                    <Breadcrumbs items={breadcrumbItems} />
+                    <div className="mb-12">
+                        <h1 className="text-6xl font-bold tracking-tighter mb-6">Playground</h1>
+                        <p className="text-xl text-neutral-400 max-w-2xl">A collection of experiments, UI snippets, and unfinished ideas.</p>
+                    </div>
+                    <div className="flex gap-4 mb-12 overflow-x-auto pb-4 no-scrollbar">
+                        {["All", "Experiments", "UI Components", "Motion", "UI/UX"].map(cat => (
+                            <button key={cat} onClick={() => setFilter(cat)} className={`px-4 py-2 rounded-full text-sm font-mono border transition-all whitespace-nowrap ${filter === cat ? "bg-white text-black border-white" : "bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-500"}`}>{cat}</button>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-20 mb-auto">
+                        {filteredItems.map((item, index) => (
+                            <div key={index} onClick={() => onItemClick(item)} className="group cursor-pointer">
+                                <div className="aspect-square relative bg-neutral-900 border border-neutral-800 hover:border-white transition-all duration-300 overflow-hidden rounded-xl mb-4">
+                                    <div className={`absolute inset-0 ${item.color} opacity-20 group-hover:opacity-30 transition-opacity`} />
+                                    <div className="absolute inset-0 flex items-center justify-center"><div className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300"><Icons.ArrowUpRight size={20} /></div></div>
+                                </div>
+                                <h3 className="text-lg font-bold group-hover:text-neutral-200">{item.title}</h3>
+                                <span className="text-xs font-mono text-neutral-500 uppercase">{item.type}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const ContactForm = ({ addToast }) => {
+            const [state, setState] = useState({ name: '', email: '', message: '', captcha: '' });
+            const [loading, setLoading] = useState(false);
+            const [challenge, setChallenge] = useState({ n1: 0, n2: 0 });
+            
+            // !!! REPLACE THIS URL WITH YOUR ACTUAL FORMSPREE ENDPOINT !!!
+            const FORMSPREE_ENDPOINT = "https://formspree.io/f/xojnakld"; 
+
+            useEffect(() => { genCaptcha(); }, []);
+            const genCaptcha = () => setChallenge({ n1: Math.floor(Math.random()*10), n2: Math.floor(Math.random()*10) });
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (parseInt(state.captcha) !== (challenge.n1 + challenge.n2)) { addToast("Incorrect math answer.", "error"); return; }
+                setLoading(true);
+                try {
+                    const response = await fetch(FORMSPREE_ENDPOINT, {
+                        method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: state.name, email: state.email, message: state.message })
+                    });
+                    if (response.ok) { setState({ name: '', email: '', message: '', captcha: '' }); genCaptcha(); addToast("Message sent successfully!", "success"); } 
+                    else { addToast("Error: Did you replace the Formspree ID?", "error"); }
+                } catch (error) { addToast("Network error. Please try again.", "error"); } 
+                finally { setLoading(false); }
+            };
+
+            return (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <input type="text" placeholder="Name" required className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-white focus:outline-none transition-colors" value={state.name} onChange={e => setState({...state, name: e.target.value})} />
+                        <input type="email" placeholder="Email" required className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-white focus:outline-none transition-colors" value={state.email} onChange={e => setState({...state, email: e.target.value})} />
+                    </div>
+                    <textarea placeholder="Tell me about your project..." rows="4" required className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-white focus:outline-none transition-colors resize-none" value={state.message} onChange={e => setState({...state, message: e.target.value})}></textarea>
+                    <div className="flex gap-4 items-center">
+                        <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-3 text-neutral-400 font-mono text-sm flex items-center justify-between"><span>{challenge.n1} + {challenge.n2} = ?</span><button type="button" onClick={genCaptcha}><Icons.RefreshCcw size={14}/></button></div>
+                        <input type="number" placeholder="Ans" required className="w-20 bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white text-center focus:border-white focus:outline-none" value={state.captcha} onChange={e => setState({...state, captcha: e.target.value})} />
+                        <button type="submit" disabled={loading} className="flex-1 bg-white text-black font-bold rounded-lg p-3 hover:bg-neutral-200 transition-colors disabled:opacity-50">{loading ? 'Sending...' : 'Send Message'}</button>
+                    </div>
+                </form>
+            );
+        };
+
+        const App = () => {
+            const [isLoading, setIsLoading] = useState(true); 
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [currentView, setCurrentView] = useState('home'); 
+            const [selectedProject, setSelectedProject] = useState(null);
+            const [showScrollTop, setShowScrollTop] = useState(false);
+            const [toasts, setToasts] = useState([]);
+            const scrollPos = useRef(0);
+
+            useEffect(() => {
+                const handleScroll = () => { setShowScrollTop(window.scrollY > 400); };
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            useEffect(() => {
+                if (isMenuOpen) document.body.style.overflow = 'hidden';
+                else document.body.style.overflow = '';
+            }, [isMenuOpen]);
+
+            const addToast = (msg, type) => { const id = Date.now(); setToasts(prev => [...prev, { id, message: msg, type }]); };
+
+            // IMPROVED: Safer Navigation Logic
+            const handleNav = (e, href) => {
+                e.preventDefault();
+                setIsMenuOpen(false);
+
+                if (href === 'playground') { 
+                    scrollPos.current = window.scrollY; 
+                    setCurrentView('playground'); 
+                    return; 
+                }
+
+                // Helper to safe-scroll
+                const performScroll = () => {
+                    if (href === '#' || !href) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        const el = document.querySelector(href);
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                };
+
+                if (currentView !== 'home') { 
+                    setCurrentView('home'); 
+                    setTimeout(performScroll, 100); 
+                } else { 
+                    performScroll();
+                }
+            };
+
+            const handleProjectClick = (item, type) => {
+                scrollPos.current = window.scrollY;
+                if (type === 'page') { setCurrentView('playground'); return; }
+                const project = { ...item };
+                if (type === 'work') { project.title = item.role; project.subtitle = item.company; project.category = "Work Experience"; project.color = "bg-neutral-800"; } 
+                else { project.subtitle = item.type; project.category = "Playground"; }
+                setSelectedProject(project); setCurrentView('detail');
+            };
+
+            const goBack = (target) => {
+                setCurrentView('home'); setSelectedProject(null);
+                if (typeof target === 'string' && target.startsWith('#')) { setTimeout(() => { document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' }); }, 50); } 
+                else { setTimeout(() => window.scrollTo(0, scrollPos.current), 50); }
+            };
+
+            return (
+                <div className="min-h-screen bg-neutral-950 text-white selection:bg-indigo-500 selection:text-white overflow-x-hidden font-sans">
+                    <div className="bg-mesh"></div>
+                    <Spotlight />
+                    <BackgroundBlobs />
+                    <CustomCursor />
+                    <Preloader isLoading={isLoading} onAnimationDone={() => setIsLoading(false)} />
+                    <div className="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none">
+                        {toasts.map(t => <Toast key={t.id} message={t.message} type={t.type} onClose={() => setToasts(prev => prev.filter(i => i.id !== t.id))} />)}
+                    </div>
+                    <Navigation currentView={currentView} isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} onNavigate={handleNav} />
+                    <CircularScrollButton show={showScrollTop && currentView !== 'detail'} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+                    <main className="relative z-10">
+                        {currentView === 'home' && <HomePage onProjectClick={handleProjectClick} addToast={addToast} />}
+                        {currentView === 'playground' && <PlaygroundPage onBack={goBack} onItemClick={(item) => handleProjectClick(item, 'playground')} />}
+                        {currentView === 'detail' && selectedProject && <ProjectDetailPage project={selectedProject} onBack={goBack} onHome={goBack} />}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        window.addEventListener('load', () => { root.render(<App />); });
+    </script>
+</body>
+</html>
