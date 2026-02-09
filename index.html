@@ -3,7 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    
+    <meta
+    http-equiv="Content-Security-Policy"
+    content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    frame-ancestors 'none';
+
+    img-src 'self' data: https:;
+    style-src 'self' 'unsafe-inline' https:;
+    script-src 'self' 'unsafe-inline' https:;
+    font-src 'self' data: https:;
+    connect-src 'self' https:;
+    media-src 'self' https:;
+  "
+>
+
     <title>Waliul Awal Taha - Creative Developer</title>
     <meta name="description" content="Creative Developer building expressive digital experiences. React, Node.js, and Design.">
     <meta name="author" content="Waliul Awal Taha">
